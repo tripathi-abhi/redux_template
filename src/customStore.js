@@ -1,13 +1,25 @@
 import reducer from "./reducer";
 
 function customStore(reducer) {
-	let state = 1;
+	let state;
+	let listeners = [];
+
+	function subscribe(listener) {
+		listeners.push(listener);
+		return () =>
+			(listeners = listeners.filter(itrListener => listener !== itrListener));
+	}
+
+	function dispatch(action) {
+		state = reducer(state, action);
+		listeners.forEach(listener => listener());
+	}
 
 	function getState() {
 		return state;
 	}
 
-	return { getState };
+	return { getState, dispatch, subscribe };
 }
 
 export default customStore(reducer);

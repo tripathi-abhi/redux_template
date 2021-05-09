@@ -1,21 +1,21 @@
-import * as actions from "./actionTypes";
+import * as action from "./actionTypes";
 
 export const addBug = description => ({
-	type: actions.ADD_BUG,
+	type: action.ADD_BUG,
 	payload: {
 		description,
 	},
 });
 
 export const removeBug = id => ({
-	type: actions.REMOVE_BUG,
+	type: action.REMOVE_BUG,
 	payload: {
 		id,
 	},
 });
 
 export const resolveBug = id => ({
-	type: actions.RESOLVE_BUG,
+	type: action.RESOLVE_BUG,
 	payload: {
 		id,
 	},
