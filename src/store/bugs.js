@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { createSelector } from "reselect";
 
 // creating slices
 let lastId = 0;
@@ -25,65 +26,33 @@ const bugSlice = createSlice({
 				bugs[index].resolved = true;
 			}
 		},
+		assignBugToUser: (bugs, action) => {
+			const index = bugs.findIndex(bug => bug.id === action.payload.bugId);
+			if (bugs[index]) {
+				bugs[index].userId = action.payload.userId;
+			}
+		},
 	},
 });
 
-export const { addBug, removeBug, resolveBug } = bugSlice.actions;
+export const {
+	addBug,
+	removeBug,
+	resolveBug,
+	assignBugToUser,
+} = bugSlice.actions;
 export default bugSlice.reducer;
 
-// Action types
+// selectors
 
-// export const addBug = createAction("ADD_BUG");
-// export const removeBug = createAction("REMOVE_BUG");
-// export const resolveBug = createAction("RESOLVE_BUG");
+export const getUnresolvedBugs = createSelector(
+	state => state.entities.bugs,
+	bugs => bugs.filter(bug => !bug.resolved)
+);
 
-// let id = 0;
-// export default createReducer([], {
-// 	[addBug.type]: (bugs, action) => {
-// 		bugs.push({
-// 			id: ++id,
-// 			description: action.payload.description,
-// 			resolved: false,
-// 		});
-// 	},
-// 	[removeBug.type]: (bugs, action) => {
-// 		const index = bugs.findIndex(bug => bug.id === action.payload.id);
-// 		if (bugs[index]) {
-// 			bugs.splice(index, 1);
-// 		}
-// 	},
-// 	[resolveBug.type]: (bugs, action) => {
-// 		const index = bugs.findIndex(bug => bug.id === action.payload.id);
-// 		if (bugs[index]) {
-// 			bugs[index].resolved = true;
-// 		}
-// 	},
-// });
-
-// Action Types
-
-// export const ADD_BUG = "ADD_BUG";
-
-// reducers
-
-// export default function reducer(state = [], action) {
-// 	switch (action.type) {
-// 		case addBug.type:
-// 			return [
-// 				...state,
-// 				{
-// 					id: ++id,
-// 					description: action.payload.description,
-// 					resolved: false,
-// 				},
-// 			];
-// 		case removeBug.type:
-// 			return state.filter(bug => bug.id !== action.payload.id);
-// 		case resolveBug.type:
-// 			return state.map(bug =>
-// 				bug.id !== action.payload.id ? bug : { ...bug, resolved: true }
-// 			);
-// 		default:
-// 			return state;
-// 	}
-// }
+export const getBugsAssignedToUser = id =>
+	createSelector(
+		state => state.entities.bugs,
+		state => state.entities.users,
+		(bugs, users) => bugs.filter(bug => bug.userId === id)
+	);
