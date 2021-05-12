@@ -1,9 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
+import moment from "moment";
 import { createSelector } from "reselect";
 import { apicallBegan } from "./api";
 
 // creating slices
-let lastId = 0;
 const bugSlice = createSlice({
 	name: "bugs",
 	initialState: {
@@ -12,15 +12,19 @@ const bugSlice = createSlice({
 		lastFetch: null,
 	},
 	reducers: {
+		bugsRequested: (bugs, action) => {
+			bugs.loading = true;
+		},
 		bugsRecieved: (bugs, action) => {
 			bugs.list = action.payload;
+			bugs.loading = false;
+			bugs.lastFetch = Date.now();
+		},
+		bugsRequestFailed: (bugs, action) => {
+			bugs.loading = false;
 		},
 		addBug: (bugs, action) => {
-			bugs.list.push({
-				id: ++lastId,
-				description: action.payload.description,
-				resolved: false,
-			});
+			bugs.list.push(action.payload);
 		},
 		removeBug: (bugs, action) => {
 			const index = bugs.list.findIndex(bug => bug.id === action.payload.id);
@@ -35,7 +39,7 @@ const bugSlice = createSlice({
 			}
 		},
 		assignBugToUser: (bugs, action) => {
-			const index = bugs.list.findIndex(bug => bug.id === action.payload.bugId);
+			const index = bugs.list.findIndex(bug => bug.id === action.payload.id);
 			if (bugs.list[index]) {
 				bugs.list[index].userId = action.payload.userId;
 			}
@@ -43,16 +47,57 @@ const bugSlice = createSlice({
 	},
 });
 
-export const { addBug, removeBug, resolveBug, assignBugToUser, bugsRecieved } =
-	bugSlice.actions;
+export const {
+	addBug,
+	removeBug,
+	resolveBug,
+	assignBugToUser,
+	bugsRecieved,
+	bugsRequested,
+	bugsRequestFailed,
+} = bugSlice.actions;
 export default bugSlice.reducer;
 
 // Action creators
 const url = "/bugs";
-export const loadBugs = () =>
+export const loadBugs = () => (dispatch, getState) => {
+	const { lastFetch } = getState().entities.bugs;
+	const callInterval = moment().diff(moment(lastFetch), "minutes");
+	if (callInterval < 10) return;
+	dispatch(
+		apicallBegan({
+			url,
+			onSuccess: bugsRecieved.type,
+			onRequest: bugsRequested.type,
+			onError: bugsRequestFailed.type,
+		})
+	);
+};
+
+export const postBug = bug =>
 	apicallBegan({
 		url,
-		onSuccess: bugsRecieved.type,
+		method: "post",
+		data: bug,
+		onSuccess: addBug.type,
+		onRequest: bugsRequested.type,
+		onError: bugsRequestFailed.type,
+	});
+
+export const markResolveBug = id =>
+	apicallBegan({
+		url: `${url}/${id}`,
+		method: "patch",
+		data: { resolved: true },
+		onSuccess: resolveBug.type,
+	});
+
+export const assignBug = (bugId, userId) =>
+	apicallBegan({
+		url: `${url}/${bugId}`,
+		method: "patch",
+		data: { userId },
+		onSuccess: assignBugToUser.type,
 	});
 
 // selectors
