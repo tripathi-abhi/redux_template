@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createSelector } from "reselect";
 
 let lastId = 0;
 
@@ -11,7 +10,6 @@ const userSlice = createSlice({
 			users.push({
 				id: ++lastId,
 				name: action.payload.name,
-				bugIds: [],
 			});
 		},
 	},
