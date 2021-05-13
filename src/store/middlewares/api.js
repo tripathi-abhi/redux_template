@@ -2,7 +2,7 @@ import axios from "axios";
 import * as actions from "../api";
 
 const api =
-	({ dispatch }) =>
+	({ dispatch, getState }) =>
 	next =>
 	async action => {
 		if (action.type !== actions.apicallBegan.type) return next(action);
@@ -18,8 +18,9 @@ const api =
 				data,
 			});
 			dispatch(actions.apicallSuccess(response.data));
-			console.log(response.data);
-			if (onSuccess) dispatch({ type: onSuccess, payload: response.data });
+			if (onSuccess) {
+				dispatch({ type: onSuccess, payload: response.data });
+			}
 		} catch (error) {
 			dispatch(actions.apicallFailed(error.message));
 			if (onError) dispatch({ type: onError, payload: error.message });

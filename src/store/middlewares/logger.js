@@ -1,6 +1,5 @@
 const logger = params => state => next => action => {
-	console.log(params);
-	next(action);
+	return next(action);
 };
 
 export default logger;

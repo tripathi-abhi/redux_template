@@ -26,12 +26,6 @@ const bugSlice = createSlice({
 		addBug: (bugs, action) => {
 			bugs.list.push(action.payload);
 		},
-		removeBug: (bugs, action) => {
-			const index = bugs.list.findIndex(bug => bug.id === action.payload.id);
-			if (bugs[index]) {
-				bugs.list.splice(index, 1);
-			}
-		},
 		resolveBug: (bugs, action) => {
 			const index = bugs.list.findIndex(bug => bug.id === action.payload.id);
 			if (bugs.list[index]) {
@@ -47,9 +41,8 @@ const bugSlice = createSlice({
 	},
 });
 
-export const {
+const {
 	addBug,
-	removeBug,
 	resolveBug,
 	assignBugToUser,
 	bugsRecieved,
@@ -64,7 +57,7 @@ export const loadBugs = () => (dispatch, getState) => {
 	const { lastFetch } = getState().entities.bugs;
 	const callInterval = moment().diff(moment(lastFetch), "minutes");
 	if (callInterval < 10) return;
-	dispatch(
+	return dispatch(
 		apicallBegan({
 			url,
 			onSuccess: bugsRecieved.type,
